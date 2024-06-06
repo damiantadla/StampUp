@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,54 +48,26 @@ fun LoginScreen(navController: NavHostController) {
         Image(painter = painterResource(id = R.drawable.icon), contentDescription = "Icon image",
             modifier = Modifier.size(200.dp)
         )
-        Text(text="Welcome back", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text(text ="StempUp", fontSize = 20.sp, fontWeight = FontWeight.Medium, color= primaryColor)
+        HeadingTextComponent(value = stringResource(id = R.string.welcome_back))
+        NormalTextComponent(value = stringResource(id = R.string.app_name))
         Spacer(modifier = Modifier.height(24.dp))
 
 
-        var email by remember {
-            mutableStateOf("")
-        }
-
-        OutlinedTextField(value=email, onValueChange = {email=it}, label = {
-            Text(text = "Email")
-        })
-        Spacer(modifier = Modifier.height(16.dp))
-        var password by remember { mutableStateOf("") }
-
-        // Creating a variable to store toggle state
-        var passwordVisible by remember { mutableStateOf(false) }
-
-        // Create a Text Field for giving password input
-        OutlinedTextField(
-            value = password,
-            onValueChange = {password = it },
-            label = { Text("Password") },
-            singleLine = true,
-            placeholder = { Text("Password") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Filled.Favorite // TODO Tutaj ikonki sa do zmiany bo wjebalem na szybko !!!
-                else Icons.Filled.Face // TODO Tutaj ikonka jest do zmiany bo wjebalem na szybko !!!
-
-                val description = if (passwordVisible) "Hide password" else "Show password"
-
-                IconButton(onClick = {passwordVisible = !passwordVisible}){
-                    Icon(imageVector  = image, description)
-                }
-            }
+        MyTextField(
+            labelValue = stringResource(id = R.string.email),
+            painterResource = painterResource(id = R.drawable.baseline_mail_24)
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        PasswordTextField(
+            labelValue = stringResource(id = R.string.password) ,
+            painterResource = painterResource(id = R.drawable.baseline_lock_24) )
+
         Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            modifier = Modifier.size(150.dp, 55.dp),
-            onClick = {}){
-            Text(
-                fontSize = 16.sp,
-                text = "Login")
-        }
+
+        MyButton(labelValue = stringResource(id = R.string.login))
+
         Spacer(modifier = Modifier.height(24.dp))
         Row(){
             Text(text="Don't have an account? ", fontSize = 16.sp)
