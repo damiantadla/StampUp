@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             Surface {
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = "userscreen") { //TODO Zmienic na login bo teraz sa testy na userscreena
                     composable("login") { LoginScreen(navController, auth,
                         onSignInClick = { email, password ->
                             signIn(email, password, navController)
