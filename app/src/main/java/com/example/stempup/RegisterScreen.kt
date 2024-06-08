@@ -70,10 +70,6 @@ fun RegisterScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(8.dp))
 
 
-        PasswordTextField(
-            labelValue = stringResource(id = R.string.password) ,
-            painterResource = painterResource(id = R.drawable.baseline_lock_24) )
-
 
         Spacer(modifier = Modifier.height(32.dp))
 
