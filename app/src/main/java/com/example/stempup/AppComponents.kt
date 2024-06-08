@@ -65,11 +65,33 @@ fun MyTextField(labelValue: String, painterResource: Painter){
     )
 }
 
+
 @Composable
-fun PasswordTextField(labelValue: String, painterResource: Painter){
+fun EmailTextField(labelValue: String, painterResource: Painter, initialEmail: String, onEmailChanged: (String) -> Unit){
+
+    val email = remember {
+        mutableStateOf(initialEmail)
+    }
+
+    OutlinedTextField(
+        label = { Text(text = labelValue) },
+        value = email.value,
+        keyboardOptions = KeyboardOptions.Default,
+        onValueChange = {
+            email.value = it
+            onEmailChanged(it)
+                        },
+        leadingIcon = { Icon(painter = painterResource, contentDescription ="" )}
+
+
+    )
+}
+
+@Composable
+fun PasswordTextField(labelValue: String, painterResource: Painter,    initialPassword: String,    onPasswordChanged: (String) -> Unit){
 
     val password = remember {
-        mutableStateOf("")
+        mutableStateOf(initialPassword)
     }
 
     val passwordVisible = remember {
@@ -80,7 +102,10 @@ fun PasswordTextField(labelValue: String, painterResource: Painter){
         label = { Text(text = labelValue) },
         value = password.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        onValueChange = { password.value = it },
+        onValueChange = {
+            password.value = it
+            onPasswordChanged(it)
+        },
         leadingIcon = { Icon(painter = painterResource, contentDescription ="" )},
         trailingIcon = {
 
