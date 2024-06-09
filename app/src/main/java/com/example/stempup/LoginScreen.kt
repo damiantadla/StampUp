@@ -41,12 +41,28 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
-fun LoginScreen(navController: NavHostController, auth: FirebaseAuth, onSignInClick: (String, String) -> Unit, context: Context) {
+fun LoginScreen(navController: NavHostController, auth: FirebaseAuth, onSignInClick: (String, String) -> Unit ,context: Context) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val user1 = Firebase.auth.currentUser
+    user1?.let {
+        // Name, email address, and profile photo Url
+        val name = it.displayName
+        val email = it.email
+        val photoUrl = it.photoUrl
 
+        // Check if user's email is verified
+        val emailVerified = it.isEmailVerified
+
+        // The user's ID, unique to the Firebase project. Do NOT use this value to
+        // authenticate with your backend server, if you have one. Use
+        // FirebaseUser.getIdToken() instead.
+        val uid = it.uid
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -84,9 +100,8 @@ fun LoginScreen(navController: NavHostController, auth: FirebaseAuth, onSignInCl
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
+            modifier = Modifier.size(150.dp, 55.dp),
             onClick = {
-                Log.d("Login", email)
-                Log.d("Login", password)
                 if (email.isNotEmpty() && password.isNotEmpty()) {
                     onSignInClick(email, password)
                 } else {
@@ -95,7 +110,9 @@ fun LoginScreen(navController: NavHostController, auth: FirebaseAuth, onSignInCl
                 }
             }
         ) {
-            Text(text = "Login")
+            Text(
+                fontSize = 16.sp,
+                text = "Login" )
         }
 
         Spacer(modifier = Modifier.height(24.dp))

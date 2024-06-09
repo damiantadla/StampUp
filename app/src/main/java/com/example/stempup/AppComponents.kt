@@ -48,17 +48,20 @@ fun HeadingTextComponent(value: String){
 }
 
 @Composable
-fun MyTextField(labelValue: String, painterResource: Painter){
+fun MyTextField(labelValue: String, painterResource: Painter, initialValue: String, onTextChanged: (String) -> Unit){
 
     val textValue = remember {
-        mutableStateOf("")
+        mutableStateOf(initialValue)
     }
 
     OutlinedTextField(
         label = { Text(text = labelValue) },
         value = textValue.value,
         keyboardOptions = KeyboardOptions.Default,
-        onValueChange = { textValue.value = it },
+        onValueChange = {
+            textValue.value = it
+            onTextChanged(it)
+                        },
         leadingIcon = { Icon(painter = painterResource, contentDescription ="" )}
 
 

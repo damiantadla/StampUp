@@ -23,13 +23,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 
 @Composable
-fun UserScreen(navController: NavHostController){
-    val userViewModel: UserViewModel = viewModel()
-    val user = userViewModel.currentUser
-    val displayName = user?.email ?: "Unknown"
+fun UserScreen(OnSignOut: () -> Unit){
+    val user1 = Firebase.auth.currentUser
+    user1?.let {
+        // Name, email address, and profile photo Url
+        val name = it.displayName
+        val email = it.email
+        val photoUrl = it.photoUrl
+
+        // Check if user's email is verified
+        val emailVerified = it.isEmailVerified
+
+        // The user's ID, unique to the Firebase project. Do NOT use this value to
+        // authenticate with your backend server, if you have one. Use
+        // FirebaseUser.getIdToken() instead.
+        val uid = it.uid
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -40,14 +54,14 @@ fun UserScreen(navController: NavHostController){
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
           ){
-            Text(text=displayName)
+            Text(text= "Hello, ${user1?.displayName}")
             Button(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = alfaColor
                 ),
                 border = null,
                 onClick = {
-                    navController.navigate("login")
+                    OnSignOut()
                 }
             ) {
                 Icon(
@@ -58,7 +72,9 @@ fun UserScreen(navController: NavHostController){
                 )
             }
         }
-        Button(onClick = {       Log.i("Sp", userViewModel.number.toString())}) {
+        Button(onClick = {
+            Log.i("Sp", user1?.email.toString())
+        }) {
 
         }
     }
