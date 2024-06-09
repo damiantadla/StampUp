@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +58,7 @@ fun MyTextField(labelValue: String, painterResource: Painter, initialValue: Stri
     OutlinedTextField(
         label = { Text(text = labelValue) },
         value = textValue.value,
+        singleLine = true, //Fix zeby nie było białych znakow
         keyboardOptions = KeyboardOptions.Default,
         onValueChange = {
             textValue.value = it
@@ -80,6 +82,7 @@ fun EmailTextField(labelValue: String, painterResource: Painter, initialEmail: S
         label = { Text(text = labelValue) },
         value = email.value,
         keyboardOptions = KeyboardOptions.Default,
+        singleLine = true, //Fix zeby nie było białych znakow
         onValueChange = {
             email.value = it
             onEmailChanged(it)
@@ -109,6 +112,7 @@ fun PasswordTextField(labelValue: String, painterResource: Painter,    initialPa
             password.value = it
             onPasswordChanged(it)
         },
+        singleLine = true, //Fix zeby nie było białych znakow
         leadingIcon = { Icon(painter = painterResource, contentDescription ="" )},
         trailingIcon = {
 
