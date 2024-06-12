@@ -1,37 +1,88 @@
 package com.example.stempup
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.actionCodeSettings
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+
+import androidx.lifecycle.ViewModel
+
+class AuthViewModel : ViewModel() {
+    var isLoggedIn: Boolean = false
+}
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var navController: NavHostController
-    val db = Firebase.firestore
+    private lateinit var barcodeLauncher: ActivityResultLauncher<ScanOptions>
+    private var isLoggedIn = false
+    private val db = Firebase.firestore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         FirebaseApp.initializeApp(this)
         auth = Firebase.auth
 
+        barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
+            if (result.contents == null) {
+                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show()
+            } else {
+                val documentId = result.contents
+                val docRef = db.collection("users").document(documentId)
+                docRef.get()
+                    .addOnSuccessListener { document ->
+                        if (document != null && document.exists()) {
+                            val displayName = document.getString("displayName")
+                            val numberOfStamps = document.getLong("numberOfStamps")?.toInt() ?: 0
+                            if (numberOfStamps < 10) {
+                                val newNumberOfStamps = numberOfStamps + 1
+                                docRef.update("numberOfStamps", newNumberOfStamps)
+                                    .addOnSuccessListener {
+                                        Log.d("TAG", "DocumentSnapshot successfully updated!")
+                                        Toast.makeText(this, "Added stamp for: $displayName", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.w("TAG", "Error updating document", e)
+                                    }
+                            } else {
+                                Toast.makeText(this, "$displayName already has 10 stamps", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Log.d("TAG", "No such document")
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.d("TAG", "get failed with ", exception)
+                    }
+            }
+        }
+
+        isLoggedIn = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).getBoolean("isLoggedIn", false)
+
         setContent {
-            navController = rememberNavController()
+            var navControllerKey by remember { mutableStateOf(0) }
+            val navController = rememberNavController()
+
             Surface {
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = if (isLoggedIn) "userScreen" else "login") {
                     composable("login") {
                         LoginScreen(
                             navController,
@@ -56,45 +107,52 @@ class MainActivity : ComponentActivity() {
                             navController
                         )
                     }
-                    composable("userScreen") { UserScreen(OnSignOut = { signOut(navController) }) }
-                    composable("ownerScreen") { OwnerScreen(navController) }
+                    composable("userScreen") {
+                        UserScreen(
+                            navController = navController,
+                            onSignOut = {
+                                signOut(navController) {
+                                    navController.navigate("login") {
+                                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    composable("ownerScreen") {
+                        OwnerScreen(
+                            navController = navController,
+                            onSignOut = {
+                                signOut(navController) {
+                                    navController.navigate("login") {
+                                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
             val currentUser = auth.currentUser
             if (currentUser != null) {
                 Log.d("MainActivity", "User is signed in: ${currentUser.uid}")
-                reload()
+                reload(navController)
             } else {
                 Log.d("MainActivity", "No user is signed in")
             }
         }
     }
 
-    private fun reload() {
-        Log.d("MainActivity", "Reloading user data")
-        var user = auth.currentUser
-        user?.let {val uid = it.uid}
-        val docRef = db.collection("users").document(user?.uid.toString())
-        docRef.get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    document.getString("role")?.let {
-                        if (document.getString("role") == "user") {
-                            navController.navigate("userScreen")
-                        } else if (document.getString("role") == "owner") {
-                            navController.navigate("ownerScreen")
-                        } else {
-                            navController.navigate("userScreen")
-                        }
-                    }
-                } else {
-                    Log.d("TAG", "No such document")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.d("TAG", "get failed with ", exception)
-            }
+    fun scanCode() {
+        val options = ScanOptions().apply {
+            setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+            setPrompt("Scan a QR Code")
+            setCameraId(0)
+            setBeepEnabled(false)
+            setOrientationLocked(false)
+        }
+        barcodeLauncher.launch(options)
     }
 
     data class User(
@@ -105,6 +163,28 @@ class MainActivity : ComponentActivity() {
         val role: String? = "user"
     )
 
+    private fun reload(navController: NavHostController) {
+        Log.d("MainActivity", "Reloading user data")
+        val user = auth.currentUser
+        user?.let {
+            val uid = it.uid
+            val docRef = db.collection("users").document(user.uid)
+            docRef.get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        document.getString("role")?.let { role ->
+                            navController.navigate(if (role == "user") "userScreen" else "ownerScreen")
+                        }
+                    } else {
+                        Log.d("TAG", "No such document")
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.d("TAG", "get failed with ", exception)
+                }
+        }
+    }
+
     private fun signIn(email: String, password: String, navController: NavHostController) {
         if (email.isEmpty() || password.isEmpty()) {
             Log.e("Login", "Email or password is empty")
@@ -114,6 +194,7 @@ class MainActivity : ComponentActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    isLoggedIn = true
                     val user = auth.currentUser
                     if (user != null) {
                         if (user.isEmailVerified) {
@@ -123,14 +204,8 @@ class MainActivity : ComponentActivity() {
                             docRef.get()
                                 .addOnSuccessListener { document ->
                                     if (document != null) {
-                                        document.getString("role")?.let {
-                                            if (document.getString("role") == "user") {
-                                                navController.navigate("userScreen")
-                                            } else if (document.getString("role") == "owner") {
-                                                navController.navigate("ownerScreen")
-                                            } else {
-                                                navController.navigate("userScreen")
-                                            }
+                                        document.getString("role")?.let { role ->
+                                            navController.navigate(if (role == "user") "userScreen" else "ownerScreen")
                                         }
                                     } else {
                                         Log.d("TAG", "No such document")
@@ -139,7 +214,6 @@ class MainActivity : ComponentActivity() {
                                 .addOnFailureListener { exception ->
                                     Log.d("TAG", "get failed with ", exception)
                                 }
-                            navController.navigate("userScreen")
                         } else {
                             Log.d("Login", "Email not verified")
                             Toast.makeText(this, "Email not verified", Toast.LENGTH_SHORT).show()
@@ -152,10 +226,14 @@ class MainActivity : ComponentActivity() {
             }
     }
 
-    private fun signOut(navController: NavHostController) {
-        auth.signOut()
+    private fun signOut(navController: NavHostController, onSignedOut: () -> Unit) {
+        Firebase.auth.signOut()
         Toast.makeText(this, "Signed out", Toast.LENGTH_SHORT).show()
-        navController.navigate("login")
+        isLoggedIn = false
+        navController.navigate("login") {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+        }
+        onSignedOut()
     }
 
     private fun signUp(
@@ -166,14 +244,13 @@ class MainActivity : ComponentActivity() {
         navController: NavHostController
     ) {
         if (email.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
-            Toast.makeText(this, "Fields is empty", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Fields are empty", Toast.LENGTH_SHORT).show()
             Log.e("TAG", "Email or password is empty")
             return
         }
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
                     Log.d("TAG", "createUserWithEmail:success")
                     val user = auth.currentUser
                     user!!.updateProfile(userProfileChangeRequest {
@@ -209,14 +286,12 @@ class MainActivity : ComponentActivity() {
                         Toast.LENGTH_SHORT,
                     ).show()
                 } else {
-                    // If sign in fails, display a message to the user.
                     Log.w("TAG", "createUserWithEmail:failure", task.exception)
                     Toast.makeText(
                         baseContext,
                         "Authentication failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-//                    updateUI(null)
                 }
             }
     }

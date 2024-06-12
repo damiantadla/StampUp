@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,18 +12,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StempUp"
         tools:targetApi="31">
+
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
+        <!-- Main Activity declaration with Launcher Intent Filter -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.StempUp">
+            android:screenOrientation="fullSensor"
+            tools:ignore="DiscouragedApi">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- Barcode scanner activity -->
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="fullSensor"
+            tools:replace="screenOrientation"
+            tools:ignore="DiscouragedApi" />
     </application>
 
 </manifest>
