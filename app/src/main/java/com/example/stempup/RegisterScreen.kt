@@ -8,14 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,15 +21,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 @Composable
-fun RegisterScreen(navController: NavHostController) {
+fun RegisterScreen(OnSignUpClick: (String,String,String,String) -> Unit, navController: NavHostController) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -51,7 +46,11 @@ fun RegisterScreen(navController: NavHostController) {
 
         MyTextField(
             labelValue = stringResource(id = R.string.first_name),
-            painterResource(id = R.drawable.baseline_person_24)
+            painterResource(id = R.drawable.baseline_person_24),
+            initialValue = firstName,
+            onTextChanged = {newFirstName ->
+                firstName = newFirstName
+            }
         )
 
 
@@ -59,25 +58,47 @@ fun RegisterScreen(navController: NavHostController) {
 
         MyTextField(
             labelValue = stringResource(id = R.string.last_name),
-            painterResource = painterResource(id = R.drawable.baseline_person_24)
+            painterResource = painterResource(id = R.drawable.baseline_person_24),
+            initialValue = lastName,
+            onTextChanged = {newLastName ->
+                lastName = newLastName
+            }
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        MyTextField(
+        EmailTextField(
             labelValue = stringResource(id = R.string.email),
-            painterResource = painterResource(id = R.drawable.baseline_mail_24)
+            painterResource = painterResource(id = R.drawable.baseline_mail_24),
+            initialEmail = email,
+            onEmailChanged = { newEmail ->
+                email = newEmail
+            }
         )
-        Spacer(modifier = Modifier.height(8.dp))
-
 
         PasswordTextField(
-            labelValue = stringResource(id = R.string.password) ,
-            painterResource = painterResource(id = R.drawable.baseline_lock_24) )
+            labelValue = stringResource(id = R.string.password),
+            painterResource = painterResource(id = R.drawable.baseline_lock_24),
+            initialPassword = password,
+            onPasswordChanged = { newPassword ->
+                password = newPassword
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
 
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        MyButton(labelValue = stringResource(id = R.string.register))
+        Button(
+            modifier = Modifier.size(150.dp, 55.dp),
+            onClick = {
+                OnSignUpClick(email, password, firstName, lastName)
+            }){
+            Text(
+                fontSize = 16.sp,
+                text = "Register" )
+        }
 
         Spacer(modifier = Modifier.height(100.dp))
 

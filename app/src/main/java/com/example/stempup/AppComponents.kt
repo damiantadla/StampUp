@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,17 +49,44 @@ fun HeadingTextComponent(value: String){
 }
 
 @Composable
-fun MyTextField(labelValue: String, painterResource: Painter){
+fun MyTextField(labelValue: String, painterResource: Painter, initialValue: String, onTextChanged: (String) -> Unit){
 
     val textValue = remember {
-        mutableStateOf("")
+        mutableStateOf(initialValue)
     }
 
     OutlinedTextField(
         label = { Text(text = labelValue) },
         value = textValue.value,
+        singleLine = true, //Fix zeby nie było białych znakow
         keyboardOptions = KeyboardOptions.Default,
-        onValueChange = { textValue.value = it },
+        onValueChange = {
+            textValue.value = it
+            onTextChanged(it)
+                        },
+        leadingIcon = { Icon(painter = painterResource, contentDescription ="" )}
+
+
+    )
+}
+
+
+@Composable
+fun EmailTextField(labelValue: String, painterResource: Painter, initialEmail: String, onEmailChanged: (String) -> Unit){
+
+    val email = remember {
+        mutableStateOf(initialEmail)
+    }
+
+    OutlinedTextField(
+        label = { Text(text = labelValue) },
+        value = email.value,
+        keyboardOptions = KeyboardOptions.Default,
+        singleLine = true, //Fix zeby nie było białych znakow
+        onValueChange = {
+            email.value = it
+            onEmailChanged(it)
+                        },
         leadingIcon = { Icon(painter = painterResource, contentDescription ="" )}
 
 
@@ -66,10 +94,10 @@ fun MyTextField(labelValue: String, painterResource: Painter){
 }
 
 @Composable
-fun PasswordTextField(labelValue: String, painterResource: Painter){
+fun PasswordTextField(labelValue: String, painterResource: Painter,    initialPassword: String,    onPasswordChanged: (String) -> Unit){
 
     val password = remember {
-        mutableStateOf("")
+        mutableStateOf(initialPassword)
     }
 
     val passwordVisible = remember {
@@ -80,7 +108,11 @@ fun PasswordTextField(labelValue: String, painterResource: Painter){
         label = { Text(text = labelValue) },
         value = password.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        onValueChange = { password.value = it },
+        onValueChange = {
+            password.value = it
+            onPasswordChanged(it)
+        },
+        singleLine = true, //Fix zeby nie było białych znakow
         leadingIcon = { Icon(painter = painterResource, contentDescription ="" )},
         trailingIcon = {
 

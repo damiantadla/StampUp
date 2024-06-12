@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "420813222491",
+    "project_id": "stampup-59995",
+    "storage_bucket": "stampup-59995.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:420813222491:android:0e335b18dcd6de649a057e",
+        "android_client_info": {
+          "package_name": "com.example.stempup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0ePx2xPpkyCx9_U0irkGMT5h7gsZe2dk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
